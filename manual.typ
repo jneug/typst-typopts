@@ -19,9 +19,11 @@
 	]
 )
 
+#let ns = mty.rawc.with(mty.colors.secondary)
+
 = About
 
-#name was inspired by _LaTeX_ packages like #mty.rawi[pgfkeys]#footnote[https://ctan.org/pkg/pgfkeys] and modules like #mty.rawi[argparse]#footnote[https://docs.python.org/3/library/argparse.html] in _Python_.
+TYPOPTS was inspired by _LaTeX_ packages like #mty.rawi[pgfkeys]#footnote[https://ctan.org/pkg/pgfkeys] and modules like #mty.rawi[argparse]#footnote[https://docs.python.org/3/library/argparse.html] in _Python_.
 
 = Usage
 
@@ -67,24 +69,91 @@ After installing the package just import it inside your `typ` file:
 
 == Available functions
 
-Typopts provides you with several commands in three categories: Options access, argument parsing and configuration loading.
+Typopts provides several commands in three categories: Options access, argument parsing and configuration loading.
 
 === Accessing options
 
-#command("get", "name", "func", default:none, final:false, loc:none)[
+Options are simply key/value pairs that are stored in a global state variable. 
+
+==== Namespaces
+
+_Namespaces_ are a way to create logical groups of options. All commands handling options accept an #arg[ns] argument to specify the namespace. Alternatively the namespace may be defined in dot-notation with thr option name. 
+
+`#options.get("colors.red")` and `#options.get("red", ns:"colors")` will both retrieve the option #opt[red] from the namespace #ns[colors]. The argument takes precedence though and will prevent any namespaces before a dot to take effect. This means `#options.get("colors.red", ns:"colors")` will look for an option #opt[colors.red] in the namespace #ns[colors].
+
+#command("get", "name", "func", default:none, ns:none, final:false, loc:none)[
 	#argument("name", type:"string")[
 		Name of the option.
 	]
-	#place(right, dtype("v => v"))#arg("func"): Function to pass the value to.
+	#argument("func", type:"v => none")[
+		Function to pass the value to.
+	]
+	#argument("default", type:"any", default:none)[
+		Default value, if an option #arg("name") does not exist.
+	]
+	#argument("final", type:"boolean", default:false)[
+		If set to #value(true), the options final value is retrieved, otherwise the local value. 
+	]
+	#argument("loc", type:"location", default:none)[
+		A #dtype("location") to use for retrieving the value. 
+	]
 
-	Retrieves the value for the option by the given #arg("name") and passes it to #arg("func"), which is a function of on argument.
+	Retrieves the value for the option by the given #arg("name") and passes it to #arg("func"), which is a function of one argument.
 
 	If no option #arg("name") exists, the given #arg("default") is passed on.
 
 	If #arg(final: true), the final value for the option is retrieved, otherwise the current value. If #arg("loc") is given, the call is not wrapped inside a #doc("meta/locate") call and the given #dtype("location") is used.
 ]
-#command("update", "name", "value")[
-	Updates an option
+#command("update", "name", "value", ns:none)[
+	Sets the option #arg[name] to #arg[value].
+]
+#command("update-all", "values", ns:none)[
+	Updates all key-value pairs in the dictionary #arg[values].
+]
+#command("remove", "name", ns:none)[
+
+]
+#command("display", "name", format:"any => content", default:none, final:false, ns:none)[
+
+]
+#command("load", "filename")[
+	#argument("filename", type:("string", dict))[
+	]
+	
+	Loads options from a json, toml or yaml file. 
+	
+	Any key on the girst level that has a #dtype(dict) as a value will be considered a namespace and the dictionary will be unpacked as options within this namespace. 
+	
+	#sourcecode(file:"config.toml")[
+	```toml
+	[colors]
+	red = 255,0,0
+	green = 0,255,0
+	blue = 0,0,255
+	```
+	]
+	#sourcecode[
+	```typc
+	#options.load("config.toml")
+	#text(
+		fill:#options.get(
+			"colors.red", 
+			v => rgb(..v.split(",")
+		),
+		[Hello World!]
+	)
+	```
+	]
+	
+	#arg[filename] may be a prepopulated  #dtype(dict) to load in zhe same way described above.
+	
+	If you want to load a file without namespaces, just do something like this:
+
+	#sourcecode[
+	```typc
+	#options.update-all(toml("config.toml"))
+	```
+	]
 ]
 
 == Parsing arguments
