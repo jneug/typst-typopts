@@ -12,8 +12,19 @@
 // Option storage
 
 #let __ns(name, ns) = {
-	if ns != none { "ns:" + ns + "," + name }
-	else { name }
+	if ns != none {
+		"ns:" + ns + "," + name
+	} else {
+		let dot = name.position(".")
+		if dot != none {
+			ns = name.slice(0,dot)
+			name = name.slice(dot + 1)
+
+			"ns:" + ns + "," + name
+		} else {
+			name
+		}
+	}
 }
 
 // Utilitiy function to get a local option
