@@ -1,0 +1,8 @@
+[package]
+name = "typopts"
+version = "0.0.3"
+entrypoint = "typopts.typ"
+authors = ["J. Neugebauer"]
+license = "MIT"
+description = "Option and argument parsing."
+repository = "https://github.com/jneug/typst-typopts"
