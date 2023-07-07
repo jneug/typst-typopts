@@ -4,13 +4,15 @@
 \*******************************/
 
 // global state to store options
-#let ___s_options = state("@options", (:))
+#let __s_options = state("@options", (:))
 // global state to store configuration
 #let __s_config   = state("@config", (:))
 
 
 // Option storage
 
+// get the proper optoin key from name
+// and namespace values
 #let __ns(name, ns) = {
 	if ns != none {
 		"ns:" + ns + "," + name
@@ -28,29 +30,30 @@
 }
 
 // Utilitiy function to get a local option
-#let __getLocal( name, loc, default ) = {
+#let __get-local( name, loc, default ) = {
 	assert(type(loc) == "location", message: "loc needs to be a valid location")
-	return ___s_options.at(loc).at(name, default:default)
+	return __s_options.at(loc).at(name, default:default)
 }
 
-// Utilitiy function to get a global (final) option
-#let __getFinal( name, loc, default ) = {
+// Utilitiy function to get a final option
+#let __get-final( name, loc, default ) = {
 	assert(type(loc) == "location", message: "loc needs to be a valid location")
-	return ___s_options.final(loc).at(name, default:default)
+	return __s_options.final(loc).at(name, default:default)
 }
 
 // Utilitiy function to get an option
 #let __get( name, func, default, final, loc ) = {
 	let v = none
 
-	if final { v = __getFinal(name, loc, default) }
-	else { v = __getLocal(name, loc, default) }
+	if final { v = __get-final(name, loc, default) }
+	else { v = __get-local(name, loc, default) }
 
 	if func != none { return func(v) }
 	else { return v }
 }
 
-// Retrieve an option from the store if present, a default otherwise.
+// Retrieve an option from the store if present,
+// a default value otherwise.
 #let get( name, func, default:none, final:false, loc:none, ns:none ) = {
 	if loc == none {
 		locate(l => {
@@ -63,7 +66,7 @@
 
 // Update an option in the store to a new value.
 #let update( name, value, ns:none ) = {
-	___s_options.update(o => {
+	__s_options.update(o => {
 		o.insert(__ns(name, ns), value)
 		o
 	})
@@ -76,7 +79,7 @@
 
 // Remove an option from the store.
 #let remove( name, ns:none ) = {
-	___s_options.update(o => {
+	__s_options.update(o => {
 		o.remove(__ns(name, ns))
 		o
 	})
