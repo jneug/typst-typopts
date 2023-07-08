@@ -10,7 +10,7 @@
 	info:		[A *Typst* package to conveniently handle options and arguments.],
 	authors:	"Jonas Neugebauer",
 	url:		"https://github.com/jneug/typst-typopts",
-	version:	"0.0.3",
+	version:	"0.0.4",
 	date:		"2023-07-05",
 	abstract: 	[
 		#pkg[typopts] is a *Typst* package with the intend to make handling options for packages and templates as easy as possible.
@@ -53,17 +53,17 @@ Either download the current release from GitHub#footnote[#link("https://github.c
 
 #shell(title:"cmd")[
 ```shell-unix-generic
-git clone https://github.com/jneug/typst-typopts.git typopts-0.0.3
+git clone https://github.com/jneug/typst-typopts.git typopts-0.0.4
 ```
 ]
 
-In either case make sure the files are placed in a folder with the correct version number: `typopts-0.0.3`
+In either case make sure the files are placed in a folder with the correct version number: `typopts-0.0.4`
 
 After installing the package just import it inside your `typ` file:
 
 #sourcecode[
 ```typc
-#import "@local/typopts:0.0.3": options
+#import "@local/typopts:0.0.4": options
 ```
 ]
 

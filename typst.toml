@@ -1,6 +1,6 @@
 [package]
 name = "typopts"
-version = "0.0.3"
+version = "0.0.4"
 entrypoint = "typopts.typ"
 authors = ["J. Neugebauer"]
 license = "MIT"
