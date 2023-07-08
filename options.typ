@@ -88,8 +88,6 @@
 // Display an option value with a format function.
 #let display( name, format: value => value, default:none, final:false, ns:none ) = get(__ns(name, ns), format, default:default, final:final)
 
-#let merge( ..dicts ) = {}
-
 // File loading
 #let load( filename ) = {
 	let m = filename.match(regex("\.([^.]+)$"))
