@@ -19,7 +19,7 @@
 	]
 )
 
-#let ns = mty.rawc.with(mty.colors.secondary)
+#let ns = mty.rawi
 
 = About
 
@@ -29,7 +29,7 @@ TYPOPTS was inspired by _LaTeX_ packages like #mty.rawi[pgfkeys]#footnote[https:
 
 == Use as a module
 
-To use Typopts as a module for one project, get the file `options.typ` from the repository and save it in your project folder.
+To use TYPOPTS as a module for one project, get the file `options.typ` from the repository and save it in your project folder.
 
 Import the module as usual:
 #sourcecode[
@@ -69,33 +69,34 @@ After installing the package just import it inside your `typ` file:
 
 == Available functions
 
-Typopts provides several commands in three categories: Options access, argument parsing and configuration loading.
+TYPOPTS provides several commands in three categories: Options access, argument parsing and configuration loading.
 
 === Accessing options
 
-Options are simply key/value pairs that are stored in a global state variable. 
+Options are simply key/value-pairs that are stored in a global state variable. This allows them to be access anywhere, even outside a main template function.
 
-==== Namespaces
+#idx(term:"Namespace")[Namespaces] are a way to create logical groups of options. All commands handling options accept an #arg[ns] argument to specify the namespace. Alternatively the namespace may be defined in dot-notation with thr option name.
 
-_Namespaces_ are a way to create logical groups of options. All commands handling options accept an #arg[ns] argument to specify the namespace. Alternatively the namespace may be defined in dot-notation with thr option name. 
+`#options.get("colors.red")` and `#options.get("red", ns:"colors")` will both retrieve the option #opt-[red] from the namespace #ns[colors]. The argument takes precedence though and will prevent any namespaces before a dot to take effect. This means `#options.get("colors.red", ns:"colors")` will look for an option #opt-[colors.red] in the namespace #ns[colors].
 
-`#options.get("colors.red")` and `#options.get("red", ns:"colors")` will both retrieve the option #opt[red] from the namespace #ns[colors]. The argument takes precedence though and will prevent any namespaces before a dot to take effect. This means `#options.get("colors.red", ns:"colors")` will look for an option #opt[colors.red] in the namespace #ns[colors].
-
-#command("get", "name", "func", default:none, ns:none, final:false, loc:none)[
+#command("get", ..args("name", "func", default:none, ns:none, final:false, loc:none))[
 	#argument("name", type:"string")[
 		Name of the option.
 	]
-	#argument("func", type:"v => none")[
+	#argument("func", type:"any => none")[
 		Function to pass the value to.
 	]
 	#argument("default", type:"any", default:none)[
 		Default value, if an option #arg("name") does not exist.
 	]
 	#argument("final", type:"boolean", default:false)[
-		If set to #value(true), the options final value is retrieved, otherwise the local value. 
+		If set to #value(true), the options final value is retrieved, otherwise the local value.
 	]
 	#argument("loc", type:"location", default:none)[
-		A #dtype("location") to use for retrieving the value. 
+		A #dtype("location") to use for retrieving the value.
+	]
+	#argument("ns", type:"string", default:none)[
+		The namespace to look for the value in.
 	]
 
 	Retrieves the value for the option by the given #arg("name") and passes it to #arg("func"), which is a function of one argument.
@@ -104,27 +105,60 @@ _Namespaces_ are a way to create logical groups of options. All commands handlin
 
 	If #arg(final: true), the final value for the option is retrieved, otherwise the current value. If #arg("loc") is given, the call is not wrapped inside a #doc("meta/locate") call and the given #dtype("location") is used.
 ]
-#command("update", "name", "value", ns:none)[
+#command("update", ..args("name", "value", ns:none))[
 	Sets the option #arg[name] to #arg[value].
 ]
-#command("update-all", "values", ns:none)[
-	Updates all key-value pairs in the dictionary #arg[values].
+#command("update-all", ..args("values", ns:none))[
+	Updates all key/value-pairs in the dictionary #arg[values]. Each key is used as the option name.
 ]
-#command("remove", "name", ns:none)[
+#command("remove", ..args("name", ns:none))[
+	Remove the option #arg[name].
+]
+#command("display", ..args("name", format: "(v) => v", default:none, final:false, ns:none))[
+	Show the value of option #arg[name] formated with the function #arg[format].
 
-]
-#command("display", "name", format:"any => content", default:none, final:false, ns:none)[
+	If no such option exists, #arg[default] is used instead.
 
-]
-#command("load", "filename")[
-	#argument("filename", type:("string", dict))[
+	#argument("format", type:"(any) => content", default:"(v) => v")[
+		A function of one argument, that receives the optons value and transforms it into the content to be set.
 	]
-	
-	Loads options from a json, toml or yaml file. 
-	
-	Any key on the girst level that has a #dtype(dict) as a value will be considered a namespace and the dictionary will be unpacked as options within this namespace. 
-	
-	#sourcecode(file:"config.toml")[
+]
+
+== Parsing arguments
+
+#command("add-argument", ..args("name",
+	type:     ("string", "content"),
+	required: false,
+	default:  none,
+	choices:  none,
+	store:    true,
+	pipe:     none,
+	code:     none))[
+
+]
+#command("parseconfig", ..args(_unknown:none, _opts:none), sarg("args"))[
+
+]
+#command("extract", ..args("var", _prefix:"", _positional:false), sarg("keys") )[
+
+]
+
+#command("getconfig", ..args("name", final:false))[
+
+]
+
+== Loading configuration files
+
+#command("load", arg("filename"))[
+	#argument("filename", type:("string", "dict"))[
+		The file to load options from or a #dtype("dictionary") options. Supported are YAML, TOML and JSON files.
+	]
+
+	Loads options from a json, toml or yaml file.
+
+	Any key on the girst level that has a #dtype("dict") as a value will be considered a namespace and the dictionary will be unpacked as options within this namespace.
+
+	#sourcecode(title:"config.toml")[
 	```toml
 	[colors]
 	red = 255,0,0
@@ -137,16 +171,16 @@ _Namespaces_ are a way to create logical groups of options. All commands handlin
 	#options.load("config.toml")
 	#text(
 		fill:#options.get(
-			"colors.red", 
+			"colors.red",
 			v => rgb(..v.split(",")
 		),
 		[Hello World!]
 	)
 	```
 	]
-	
-	#arg[filename] may be a prepopulated  #dtype(dict) to load in zhe same way described above.
-	
+
+	#arg[filename] may be a prepopulated  #dtype("dict") to load in the same way described above.
+
 	If you want to load a file without namespaces, just do something like this:
 
 	#sourcecode[
@@ -156,10 +190,7 @@ _Namespaces_ are a way to create logical groups of options. All commands handlin
 	]
 ]
 
-== Parsing arguments
+= Index
 
-#options.load("typst.toml")
-
-
-== Loading configuration files
+#make-index()
 
