@@ -277,11 +277,11 @@
 }
 
 
-#let arg( var, key, default ) = {
-	if key in var.named() { var.named().at(key) }
-	else if key in var.pos() { var.pos().at(key) }
-	else { default }
-}
+// #let arg( var, key, default ) = {
+// 	if key in var.named() { var.named().at(key) }
+// 	else if key in var.pos() { var.pos().at(key) }
+// 	else { default }
+// }
 #let extract( var, _prefix:"", _positional:false, ..keys ) = {
 	let vars = (:)
 	for key in keys.named().pairs() {
